@@ -16,6 +16,8 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+import net.Net;
+
 public class Client extends JFrame {
 
 	private static final long serialVersionUID = 1L;
@@ -24,21 +26,32 @@ public class Client extends JFrame {
 	private JTextField textMessage;
 	private JTextArea history;
 	
+	private Net net = null;
 	private String name; 
 	private String address;
 	private int port;
+	private boolean connected = false;
 	
 	public Client(String name, String address, int port) {
 		this.name = name;
 		this.address = address;
 		this.port = port;	
 		
+		net = new Net(port);
+		connected = net.openConnection(address);
+		
+		if (!connected) {
+			System.err.println("Connection failed...");
+			console("Connection failed...");
+		}
+		
 		createWindow();
+		String connectionPacket = "/c/" + name + " connected from " + address + ":" + port;
+		net.send(connectionPacket.getBytes());
 		console("You are trying to connect to: " + address + ", port: " + port + ", user name: " + name);
 	}
 	
 	private void createWindow() {
-		
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch(Exception e) {
@@ -116,9 +129,11 @@ public class Client extends JFrame {
 	}
 	
 	public void send(String message) {
-		if (message.equals("")) return;
+		if (message.equals(""))
+			return;
 		message = name + ": " + message;
 		console(message);
+		net.send(message.getBytes());
 		textMessage.setText("");
 	}
 	
