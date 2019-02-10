@@ -3,6 +3,7 @@ package server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +63,26 @@ public class Server {
 		}, "Receive");
 		receiveData.start();
 	}
-
+	
+	private void send(final byte[] data, final InetAddress address, final int port) {
+		sendData = new Thread(() -> {
+			DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+			try {
+				socket.send(packet);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}, "Send");
+		sendData.start();
+	}
+	
+	private void sendToAll(String message) {
+		for (int i = 0; i < clients.size(); i++) {
+			ServerClient client = clients.get(i);
+			send(message.getBytes(), client.address, client.port);
+		}
+	}
+	
 	private void process(DatagramPacket packet) {
 		String str = new String(packet.getData());
 
@@ -71,6 +91,8 @@ public class Server {
 			clients.add(new ServerClient(str.substring(3, str.length()), packet.getAddress(), packet.getPort(), id));
 			System.out.println("ID: " + id);
 			System.out.println(str.substring(3, str.length()));
+		} else if (str.startsWith("/m/")) {
+			sendToAll(str);
 		} else {
 			System.out.println(str);
 		}
