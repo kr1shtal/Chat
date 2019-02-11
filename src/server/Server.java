@@ -76,6 +76,11 @@ public class Server {
 		sendData.start();
 	}
 	
+	private void send(String message, InetAddress address, int port) {
+		message += "/e/";
+		send(message.getBytes(), address, port);
+	}
+	
 	private void sendToAll(String message) {
 		for (int i = 0; i < clients.size(); i++) {
 			ServerClient client = clients.get(i);
@@ -88,9 +93,11 @@ public class Server {
 
 		if (str.startsWith("/c/")) {
 			int id = UniqueIdentifier.getIdentifier();
-			clients.add(new ServerClient(str.substring(3, str.length()), packet.getAddress(), packet.getPort(), id));
 			System.out.println("ID: " + id);
+			clients.add(new ServerClient(str.substring(3, str.length()), packet.getAddress(), packet.getPort(), id));
 			System.out.println(str.substring(3, str.length()));
+			String ID = "/c/" + id;
+			send(ID, packet.getAddress(), packet.getPort());
 		} else if (str.startsWith("/m/")) {
 			sendToAll(str);
 		} else {

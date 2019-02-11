@@ -27,10 +27,12 @@ public class Client extends JFrame {
 	private JTextArea history;
 	
 	private Net net = null;
+	private Thread run, listen;
 	private String name; 
 	private String address;
+	
 	private int port;
-	private boolean connected = false;
+	private boolean running = false;
 	
 	public Client(String name, String address, int port) {
 		this.name = name;
@@ -38,9 +40,9 @@ public class Client extends JFrame {
 		this.port = port;	
 		
 		net = new Net(port);
-		connected = net.openConnection(address);
+		running = net.openConnection(address);
 		
-		if (!connected) {
+		if (!running) {
 			System.err.println("Connection failed...");
 			console("Connection failed...");
 		}
@@ -49,6 +51,12 @@ public class Client extends JFrame {
 		String connectionPacket = "/c/" + name + " connected from " + address + ":" + port;
 		net.send(connectionPacket.getBytes());
 		console("You are trying to connect to: " + address + ", port: " + port + ", user name: " + name);
+		
+		run = new Thread(() -> {
+			running = true;
+			listen();
+		}, "Running");
+		run.start();
 	}
 	
 	private void createWindow() {
@@ -133,14 +141,27 @@ public class Client extends JFrame {
 			return;
 		message = name + ": " + message;
 		console(message);
-		message = "/m/" + message;
+		message = "/m/" + message + "/e/";
 		net.send(message.getBytes());
 		textMessage.setText("");
 	}
 	
+	public void listen() {
+		listen = new Thread(() -> {
+			while (running) {
+				String message = net.receive();								
+				if (message.startsWith("/c/")) {
+					net.setID(Integer.parseInt(message.split("/c/|/e/")[1]));
+					console("Successfuly connected to server! ID: " + net.getID());
+				}
+			}
+		}, "Listen");
+		listen.start();
+	}
+	
 	public void console(String message) {
-		history.setCaretPosition(history.getDocument().getLength());
 		history.append(message + "\n\r");
+		history.setCaretPosition(history.getDocument().getLength());
 	}
 	
 }
