@@ -49,6 +49,7 @@ public class Server {
 	private void receive() {
 		receiveData = new Thread(() -> {
 			while (running) {
+				System.out.println("Users: " + clients.size());
 				byte[] data = new byte[1024];
 				DatagramPacket packet = new DatagramPacket(data, data.length);
 				try {
@@ -57,8 +58,6 @@ public class Server {
 					e.printStackTrace();
 				}
 				process(packet);
-				clients.add(new ServerClient("Anonymous", packet.getAddress(), packet.getPort(), 1337));
-				System.out.println(clients.get(0).address.toString() + " : " + clients.get(0).port);
 			}
 		}, "Receive");
 		receiveData.start();
@@ -100,8 +99,29 @@ public class Server {
 			send(ID, packet.getAddress(), packet.getPort());
 		} else if (str.startsWith("/m/")) {
 			sendToAll(str);
+		} else if (str.startsWith("/d/")) {
+			String id = str.split("/d/|/e/")[1];
+			disconect(Integer.parseInt(id), true);
 		} else {
 			System.out.println(str);
 		}
+	}
+	
+	private void disconect(int id, boolean status) {
+		ServerClient c = null;
+		for (int i = 0; i < clients.size(); i++) { 
+			if (clients.get(i).getID() == id) {
+				c = clients.get(i);
+				clients.remove(i);
+				break;
+			}
+		}
+		String message = "";
+		if (status) {
+			message = "Client " + c.name + " (" + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " disconnected."; 
+		} else {
+			message = "Client " + c.name + " (" + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " timed out.";
+		}
+		System.out.println(message);
 	}
 }
