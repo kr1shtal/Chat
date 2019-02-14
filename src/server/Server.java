@@ -53,9 +53,40 @@ public class Server {
 					System.out.println("~~~~~~~~");
 					for (int i = 0; i < clients.size(); i++) {
 						ServerClient c = clients.get(i);
-						System.out.println(c.name.trim() + "(" + c.getID() + "): " + c.address.toString() + ":" + c.port);
+						System.out.println(c.name + "(" + c.getID() + "): " + c.address.toString() + ":" + c.port);
 					}
 					System.out.println("~~~~~~~~");
+				} else if (text.startsWith("kick")) {
+					String name = text.split(" ")[1];
+					int id = -1;
+					boolean isNumber = true;					
+					try {
+						id = Integer.parseInt(name);					
+					} catch (NumberFormatException e) {
+						isNumber = false;
+						e.printStackTrace();
+					}
+					if (isNumber) {
+						boolean exist = false;
+						for (int i = 0; i < clients.size(); i++) {
+							if (clients.get(i).getID() == id) {
+								exist = true;
+								break;
+							}
+						}
+						if (exist) 
+							disconect(id, true);
+						else 
+							System.out.println("Client with id: " + id + " doesn't exist! Check ID number.");
+					} else {
+						for (int i = 0; i < clients.size(); i++) {
+							ServerClient c = clients.get(i);
+							if (name.equals(c.name)) {
+								disconect(c.getID(), true);
+								break;
+							}
+						}
+					}
 				}
 			}
 		}, "Run");
@@ -146,9 +177,9 @@ public class Server {
 		
 		if (str.startsWith("/c/")) {
 			int id = UniqueIdentifier.getIdentifier();
-			System.out.println("ID: " + id);
-			clients.add(new ServerClient(str.substring(3, str.length()), packet.getAddress(), packet.getPort(), id));
-			System.out.println(str.substring(3, str.length()));
+			String name = str.split("/c/|/e/")[1];
+			System.out.println(name + "(" + id + ") connected");
+			clients.add(new ServerClient(name, packet.getAddress(), packet.getPort(), id));
 			String ID = "/c/" + id;
 			send(ID, packet.getAddress(), packet.getPort());
 		} else if (str.startsWith("/m/")) {
@@ -165,18 +196,22 @@ public class Server {
 	
 	private void disconect(int id, boolean status) {
 		ServerClient c = null;
+		boolean kicked = false;
 		for (int i = 0; i < clients.size(); i++) { 
 			if (clients.get(i).getID() == id) {
 				c = clients.get(i);
 				clients.remove(i);
+				kicked = true;
 				break;
 			}
 		}
+		if (!kicked)
+			return;
 		String message = "";
 		if (status) {
-			message = "Client " + c.name.trim() + " ( ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " disconnected."; 
+			message = "Client " + c.name + " ( ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " disconnected."; 
 		} else {
-			message = "Client " + c.name.trim() + " ( ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " timed out.";
+			message = "Client " + c.name + " ( ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " timed out.";
 		}
 		System.out.println(message);
 	}

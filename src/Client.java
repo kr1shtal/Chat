@@ -155,7 +155,6 @@ public class Client extends JFrame {
 			message = name + ": " + message;
 		}
 		net.send(message.getBytes());
-		textMessage.setText("");
 	}
 	
 	public void listen() {
