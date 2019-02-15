@@ -97,6 +97,7 @@ public class Server {
 		manageClients = new Thread(() -> {
 			while (running) {
 				sendToAll("/i/server");
+				sendStatus();
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {
@@ -151,6 +152,16 @@ public class Server {
 	private void send(String message, InetAddress address, int port) {
 		message += "/e/";
 		send(message.getBytes(), address, port);
+	}
+	
+	private void sendStatus() {
+		if (clients.size() <= 0) return;
+		String users = "/u/";
+		for (int i = 0; i < clients.size() - 1; i++) {
+			users += clients.get(i).name + "/n/";
+		}
+		users += clients.get(clients.size() - 1).name + "/e/";
+		sendToAll(users);
 	}
 	
 	private void sendToAll(String message) {
@@ -209,9 +220,9 @@ public class Server {
 			return;
 		String message = "";
 		if (status) {
-			message = "Client " + c.name + " ( ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " disconnected."; 
+			message = "Client " + c.name + " (ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " disconnected."; 
 		} else {
-			message = "Client " + c.name + " ( ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " timed out.";
+			message = "Client " + c.name + " (ID: " + c.getID() + ") @ " + c.address.toString() + ":" + c.port + " timed out.";
 		}
 		System.out.println(message);
 	}
