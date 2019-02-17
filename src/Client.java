@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -26,6 +27,7 @@ public class Client extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	
+	private ImageIcon icon = new ImageIcon("res/client.png");
 	private JPanel contentPane;
 	private JTextField textMessage;
 	private JTextArea history;
@@ -72,6 +74,7 @@ public class Client extends JFrame {
 		}
 		
 		setResizable(false);
+		setIconImage(icon.getImage());
 		setTitle("Messenger Client");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(900, 600);
